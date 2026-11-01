@@ -93,6 +93,6 @@ def get_storage() -> Storage:
             _storage = SupabaseStorage(url, key)
         else:
             _storage = LocalStorage(os.environ.get("LOCAL_STORAGE_DIR", ".local-storage"),
-                                    os.environ.get("SUPABASE_JWT_SECRET", "dev-secret"),
+                                    os.environ.get("STORAGE_SIGNING_SECRET") or os.environ.get("SUPABASE_JWT_SECRET") or "dev-only-secret",
                                     os.environ.get("API_PUBLIC_URL", "http://localhost:8000"))
     return _storage
