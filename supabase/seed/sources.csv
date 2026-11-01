@@ -1,0 +1,19 @@
+url,title,authority,country,topic,visa_type,crawl_method,crawl_frequency_days
+https://www.gov.uk/standard-visitor,UK Standard Visitor visa,gov.uk,GB,visit_visa,visitor,firecrawl,1
+https://www.gov.uk/standard-visitor/apply-standard-visitor-visa,UK Standard Visitor - apply,gov.uk,GB,visit_visa,visitor,firecrawl,1
+https://www.gov.uk/government/publications/visa-regulations-revised-table,UK visa fees table,gov.uk,GB,fees,visitor,firecrawl,1
+https://visa.vfsglobal.com/pak/en/gbr,VFS Global UK - Pakistan,vfsglobal,GB,fees,visitor,apify,1
+https://www.evisa.gov.tr/en/,Türkiye e-Visa,evisa.gov.tr,TR,visit_visa,evisa,firecrawl,1
+https://www.mfa.gov.tr/visa-information-for-foreigners.en.mfa,Türkiye MFA visa information,mfa.gov.tr,TR,visit_visa,evisa,firecrawl,7
+https://pakistan.diplo.de/pk-en/service/visa,German Embassy Pakistan - visas,diplo.de,DE,visit_visa,schengen_c,firecrawl,1
+https://visa.vfsglobal.com/pak/en/deu,VFS Global Germany - Pakistan,vfsglobal,DE,fees,schengen_c,apify,1
+https://u.ae/en/information-and-services/visa-and-emirates-id,UAE visas (official portal),u.ae,AE,visit_visa,visit,firecrawl,1
+https://icp.gov.ae/en/,UAE ICP,icp.gov.ae,AE,visit_visa,visit,apify,7
+https://www.imi.gov.my/,Malaysia Immigration,imi.gov.my,MY,visit_visa,evisa,firecrawl,7
+https://malaysiavisa.imi.gov.my/evisa/evisa.jsp,Malaysia eVisa,imi.gov.my,MY,visit_visa,evisa,apify,1
+https://visa.visitsaudi.com/,Saudi tourist eVisa,visitsaudi.com,SA,visit_visa,tourist,apify,1
+https://www.nusuk.sa/,Nusuk (Umrah),nusuk.sa,SA,umrah,umrah,apify,1
+https://www.mora.gov.pk/,Ministry of Religious Affairs Pakistan,mora.gov.pk,PK,umrah,umrah,firecrawl,7
+https://beoe.gov.pk/,Bureau of Emigration & Overseas Employment,beoe.gov.pk,PK,scam_warning,,firecrawl,1
+https://www.fia.gov.pk/,Federal Investigation Agency,fia.gov.pk,PK,scam_warning,,firecrawl,1
+https://dgip.gov.pk/,Directorate General of Immigration & Passports,dgip.gov.pk,PK,passport,,firecrawl,7
