@@ -37,6 +37,21 @@ def request_action(conn: Connection, case_id: str, kind: str, summary_en: str, s
     return row
 
 
+def request_ops_action(conn: Connection, case_id: str, kind: str, summary_en: str, summary_ur: str,
+                       payload: dict[str, Any], requested_by: str) -> dict[str, Any]:
+    """Ops-initiated irreversible step (e.g. refund): four-eyes — a different ops/admin must approve."""
+    row = conn.execute(
+        """insert into pending_actions (case_id, kind, summary_en, summary_ur, payload, requires_ops, status)
+           values (%s,%s,%s,%s,%s,true,'awaiting_ops') returning *""",
+        (case_id, kind, summary_en, summary_ur, Jsonb({**payload, "ops_initiated": True, "requested_by": requested_by})),
+    ).fetchone()
+    conn.execute("insert into ops_tasks (kind, case_id, payload) values (%s,%s,%s)",
+                 (kind, case_id, Jsonb({"action_id": str(row["id"]), "four_eyes": True})))
+    cases.add_event(conn, case_id, "ops", "ops_note", actor_id=requested_by, visible=False,
+                    note=f"{kind} requested: {summary_en}", data={"action_id": str(row["id"])})
+    return row
+
+
 def confirm_by_user(conn: Connection, action_id: str, user_id: str,
                     declarations: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     a = conn.execute(
@@ -70,6 +85,8 @@ def approve_by_ops(conn: Connection, action_id: str, ops_id: str, *, approve: bo
     a = conn.execute("select * from pending_actions where id=%s for update", (action_id,)).fetchone()
     if a is None or a["status"] != "awaiting_ops":
         raise ActionNotApproved("action is not awaiting ops approval")
+    if approve and a["payload"].get("ops_initiated") and a["payload"].get("requested_by") == str(ops_id):
+        raise ActionNotApproved("four-eyes rule: a different team member must approve")
     if approve:
         conn.execute("update pending_actions set status='approved', ops_approved_by=%s, ops_approved_at=now() where id=%s",
                      (ops_id, action_id))
@@ -92,8 +109,10 @@ def require_approved(conn: Connection, action_id: str | None, kind: str, case_id
     a = conn.execute("select * from pending_actions where id=%s for update", (action_id,)).fetchone()
     if a is None or a["kind"] != kind or str(a["case_id"]) != str(case_id):
         raise ActionNotApproved("action does not match")
-    if a["status"] != "approved" or a["user_confirmed_at"] is None:
+    if a["status"] != "approved":
         raise ActionNotApproved(f"action is {a['status']}")
+    if a["user_confirmed_at"] is None and not a["payload"].get("ops_initiated"):
+        raise ActionNotApproved("user confirmation missing")
     if a["requires_ops"] and a["ops_approved_at"] is None:
         raise ActionNotApproved("ops approval missing")
     return a

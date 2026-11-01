@@ -76,9 +76,10 @@ class LLM:
             raise
         if resp.stop_reason == "refusal":
             raise LLMRefused(getattr(getattr(resp, "stop_details", None), "category", None) or "refusal")
-        if self.usage_hook:
+        hook = self.usage_hook or _usage_hook
+        if hook:
             try:
-                self.usage_hook(Usage(resp.model, resp.usage.input_tokens, resp.usage.output_tokens), node)
+                hook(Usage(resp.model, resp.usage.input_tokens, resp.usage.output_tokens), node)
             except Exception:  # usage accounting must never break a reply
                 log.exception("usage hook failed")
         return resp
@@ -105,6 +106,12 @@ class LLM:
 
 
 _llm: LLM | None = None
+_usage_hook: UsageHook | None = None
+
+
+def set_usage_hook(fn: UsageHook | None) -> None:
+    global _usage_hook
+    _usage_hook = fn
 _override: LLM | None | bool = False  # tests can force None (offline) or a fake
 
 
