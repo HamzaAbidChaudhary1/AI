@@ -147,8 +147,10 @@ def ensure_fresh_policy(country: str, visa_type: str, fields: list[str],
     """The ensure_fresh_sources subgraph: stale/missing -> live_fetch the sources -> re-read.
     Returns (facts, unverified_fields). Unverified facts are still returned, marked not fresh."""
     facts = get_policy(country, visa_type, fields)
-    missing_or_stale = [f for f in fields if f not in facts or not facts[f].fresh]
-    if missing_or_stale:
+    # Re-fetch when a known fact is stale, or when we know nothing at all. A field that no official
+    # page states (e.g. "interview required") stays missing; re-crawling every turn would not help.
+    stale = [f for f in fields if f in facts and not facts[f].fresh]
+    if stale or not facts:
         for src in sources_for(country, visa_type):
             if progress:
                 progress("refetch", src["title"] or src["url"])

@@ -237,17 +237,16 @@ def assess_node(state: AgentState) -> dict[str, Any]:
                f"{country_name(d, 'ur')} کے لیے میرا ایماندار جائزہ: **{RATING_UR[a.rating]}**۔")]
     for f in a.blockers:
         lines.append("⛔ " + L(state, f.en, f.ur))
-    neg = [f for f in a.factors if f.impact == "negative"]
+    neg = sorted((f for f in a.factors if f.impact == "negative"), key=lambda f: f.weight)
     pos = [f for f in a.factors if f.impact == "positive"]
     if neg:
-        lines.append(L(state, "\nWeaknesses (please read these):", "\nکمزوریاں (براہِ کرم پڑھیں):"))
-        lines += [f"- {L(state, f.en, f.ur)}" for f in neg]
+        lines.append(L(state, "\nThe biggest weakness:", "\nسب سے بڑی کمزوری:") + " " + L(state, neg[0].en, neg[0].ur))
     if pos:
-        lines.append(L(state, "\nStrengths:", "\nمضبوط پہلو:"))
-        lines += [f"- {L(state, f.en, f.ur)}" for f in pos]
+        lines.append(L(state, "In your favour:", "آپ کے حق میں:") + " " + L(state, pos[0].en, pos[0].ur))
     if a.improvements:
-        lines.append(L(state, "\nWhat would make it stronger:", "\nکیا چیز اسے مضبوط بنائے گی:"))
-        lines += [f"- {L(state, i['en'], i['ur'])}" for i in a.improvements]
+        lines.append(L(state, "Most useful next step:", "سب سے مفید اگلا قدم:") + " " + L(state, a.improvements[0]["en"], a.improvements[0]["ur"]))
+    lines.append(L(state, f"All {len(neg)} weakness(es), {len(pos)} strength(s) and what would help are in the assessment card below.",
+                   f"تمام {len(neg)} کمزوریاں، {len(pos)} مضبوط پہلو اور بہتری کے طریقے نیچے جائزہ کارڈ میں ہیں۔"))
     if a.missing_info:
         lines.append(L(state, "\nI'm missing some information, so treat this as provisional.",
                        "\nکچھ معلومات نہیں ملیں، اس لیے اسے عارضی سمجھیں۔"))

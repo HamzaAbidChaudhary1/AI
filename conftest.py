@@ -50,7 +50,7 @@ def crawled(db):
     for r in db.fetch_all("select id from sources where active"):
         try:
             pipeline.crawl_source(str(r["id"]), extract_inline=True)
-        except Exception:
+        except Exception:  # noqa: S110 - sources without a fixture are skipped
             pass
     yield
     set_crawl_provider(None)

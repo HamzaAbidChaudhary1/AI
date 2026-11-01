@@ -57,7 +57,7 @@ def test_phase2_assessment_rating_with_reasons(graph):
     codes = {f["code"] for f in card["factors"]}
     assert {"unemployed", "funds_low", "refused_same_country"} <= codes
     t = text_of(events)
-    assert "Weak" in t and "Weaknesses" in t
+    assert "Weak" in t and "biggest weakness" in t
     assert_compliant(events, state)
 
     strong = {"employment_status": "employed", "employer": "Engro", "funds_available_minor": 500_000_000,

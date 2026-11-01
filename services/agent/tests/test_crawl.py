@@ -127,3 +127,11 @@ def test_crawl_due_enqueues_jobs(db, fixtures):
     r = pipeline.crawl_due_sources()
     assert r["enqueued"] > 0
     assert pipeline.crawl_due_sources()["enqueued"] == 0  # not double-enqueued
+
+
+def test_missing_fields_do_not_trigger_refetch(db, fixtures):
+    sid = _source_id(db, "https://malaysiavisa.imi.gov.my/evisa/evisa.jsp")
+    pipeline.crawl_source(sid, extract_inline=True)
+    steps = []
+    knowledge.ensure_fresh_policy("MY", "evisa", ["gov_fee", "interview_required"], progress=lambda *a: steps.append(a))
+    assert steps == []  # interview_required isn't on the page; nothing is stale

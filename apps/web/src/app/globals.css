@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #f0efe9;
+  --ink: #17221f;
+  --ink-2: #4a5753;
+  --line: #dcdad2;
+  --brand: #0f5c4d;
+  --brand-ink: #ffffff;
+  --brand-soft: #e3efeb;
+  --good: #1d6b3a;
+  --good-soft: #e3f2e7;
+  --warn: #8a5a00;
+  --warn-soft: #fbf0d9;
+  --bad: #9b1c1c;
+  --bad-soft: #fbe7e6;
+  --focus: #1a73e8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101614; --surface: #17201d; --surface-2: #1d2925; --ink: #eef2f0; --ink-2: #aab8b3; --line: #2c3a35;
+    --brand: #5fc3ac; --brand-ink: #0c1412; --brand-soft: #1c3530; --good: #6fd197; --good-soft: #17301f;
+    --warn: #f1c26b; --warn-soft: #362a12; --bad: #f19a96; --bad-soft: #3a1b1a; --focus: #8ab4f8;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101614; --surface: #17201d; --surface-2: #1d2925; --ink: #eef2f0; --ink-2: #aab8b3; --line: #2c3a35;
+  --brand: #5fc3ac; --brand-ink: #0c1412; --brand-soft: #1c3530; --good: #6fd197; --good-soft: #17301f;
+  --warn: #f1c26b; --warn-soft: #362a12; --bad: #f19a96; --bad-soft: #3a1b1a; --focus: #8ab4f8;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-urdu: var(--font-nastaliq), "Noto Nastaliq Urdu", serif;
+}
+
+html { background: var(--bg); color: var(--ink); }
+body { background: var(--bg); color: var(--ink); font-size: 17px; line-height: 1.6; -webkit-text-size-adjust: 100%; }
+/* Urdu: Nastaliq needs generous line-height (>= 2) and a larger size (>= 18px) */
+html[lang="ur"] body { font-family: var(--font-urdu); font-size: 19px; line-height: 2.1; }
+html[lang="ur"] .latin { font-family: var(--font-sans); line-height: 1.6; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+.tabular { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

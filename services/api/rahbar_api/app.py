@@ -14,7 +14,7 @@ from rahbar_agent.db import fetch_all, fetch_one
 from rahbar_agent.i18n import VISA_TYPES, country_name
 from rahbar_agent.storage import LocalStorage, get_storage
 
-from . import chat, routes_customer, routes_ops
+from . import chat, dev_auth, routes_customer, routes_ops
 from .security import sentry_before_send
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
@@ -34,6 +34,9 @@ app.include_router(chat.router)
 app.include_router(routes_customer.router)
 app.include_router(routes_ops.router)
 llm.set_usage_hook(chat.record_usage)
+if dev_auth.enabled():
+    logging.getLogger(__name__).warning("DEV_AUTH is enabled — local development only")
+    app.include_router(dev_auth.router)
 
 
 @app.get("/health")

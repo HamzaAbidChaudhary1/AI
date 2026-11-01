@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import uuid
 from typing import Any, Literal
 
@@ -97,7 +98,7 @@ def delete_me(user: User = Depends(current_user)) -> dict[str, Any]:
             try:
                 st.delete("documents", d["storage_path"])
             except Exception:
-                pass
+                logging.getLogger(__name__).warning("storage delete failed for document %s", d["id"])
             conn.execute("update documents set deleted_at=now(), extracted=null where id=%s", (d["id"],))
         conn.execute("update travellers set passport_number_enc=null, cnic_enc=null where owner_id=%s", (user.id,))
         conn.execute("update scam_checks set input_text=null where converted_user_id=%s", (user.id,))

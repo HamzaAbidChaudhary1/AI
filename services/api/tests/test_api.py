@@ -102,7 +102,7 @@ def test_public_scam_check(client):
 
 def test_full_visa_flow_over_http(client, db):
     user, ops = mk_user(db), mk_user(db, "ops")
-    H, O = token(user), token(ops, "aal2")
+    H, OPS = token(user), token(ops, "aal2")
     t = client.post("/travellers", headers=H, json={
         "full_name_as_passport": "Sara Ahmed", "date_of_birth": "1990-05-01", "passport_number": "AB1234567",
         "passport_expiry": "2032-01-01", "cnic": "35202-1234567-8",
@@ -151,23 +151,23 @@ def test_full_visa_flow_over_http(client, db):
     r = client.post("/chat", headers=H, json={"message": "", "case_id": cid, "resume": {"confirmed": True, "declarations": decl}})
     assert "confirmed" in "".join(d["text"] for e, d in sse_events(r) if e == "token")
 
-    ops_case = client.get(f"/ops/cases/{cid}", headers=O).json()
+    ops_case = client.get(f"/ops/cases/{cid}", headers=OPS).json()
     assert any(not e["visible_to_user"] for e in ops_case["events"]) or ops_case["tasks"]
-    ids = client.get(f"/ops/travellers/{t['id']}/sensitive", headers=O, params={"case_id": cid}).json()
+    ids = client.get(f"/ops/travellers/{t['id']}/sensitive", headers=OPS, params={"case_id": cid}).json()
     assert ids["passport_number"] == "AB1234567"
     assert db.fetch_one("select count(*) n from audit_log where action='reveal_ids' and entity_id=%s", (t["id"],))["n"] == 1
     action_id = card["action_id"]
-    assert client.post(f"/ops/cases/{cid}/submission", headers=O,
+    assert client.post(f"/ops/cases/{cid}/submission", headers=OPS,
                        json={"action_id": action_id, "reference": "GWF099887766", "portal": "gov.uk"}).status_code == 409
-    assert client.post(f"/ops/actions/{action_id}/approve", headers=O, json={"approve": True}).status_code == 200
-    assert client.post(f"/ops/cases/{cid}/submission", headers=O,
+    assert client.post(f"/ops/actions/{action_id}/approve", headers=OPS, json={"approve": True}).status_code == 200
+    assert client.post(f"/ops/cases/{cid}/submission", headers=OPS,
                        json={"action_id": action_id, "reference": "GWF099887766", "portal": "gov.uk"}).status_code == 200
     b = client.get(f"/cases/{cid}", headers=H).json()
     assert b["case"]["status"] == "submitted"
     assert any("GWF099887766" in e["message_en"] for e in b["events"])
     assert any(bk["provider_ref"] == "GWF099887766" for bk in b["bookings"])
     assert all(e["visible_to_user"] for e in b["events"])  # customer never sees internal notes
-    r = client.post(f"/ops/cases/{cid}/status", headers=O, json={"status": "biometrics_scheduled", "when": "2027-01-03 10:00",
+    r = client.post(f"/ops/cases/{cid}/status", headers=OPS, json={"status": "biometrics_scheduled", "when": "2027-01-03 10:00",
                                                                   "where": "VFS Lahore"})
     assert r.status_code == 200
 
@@ -177,11 +177,11 @@ def test_full_visa_flow_over_http(client, db):
 
 def test_ops_sources_review(client, db):
     ops = mk_user(db, "ops")
-    O = token(ops, "aal2")
-    srcs = client.get("/ops/sources", headers=O).json()
+    OPS = token(ops, "aal2")
+    srcs = client.get("/ops/sources", headers=OPS).json()
     gb = next(s for s in srcs if s["url"] == "https://www.gov.uk/standard-visitor")
-    d = client.get(f"/ops/sources/{gb['id']}", headers=O).json()
+    d = client.get(f"/ops/sources/{gb['id']}", headers=OPS).json()
     rec = next(r for r in d["policy_records"] if r["field"] == "gov_fee" and r["status"] == "auto")
-    assert client.post(f"/ops/policy/{rec['id']}", headers=O, json={"decision": "verify"}).json()["status"] == "verified"
-    assert client.post("/ops/sources", headers=O, json={"url": "https://agent-scam.example.com/x", "title": "x",
+    assert client.post(f"/ops/policy/{rec['id']}", headers=OPS, json={"decision": "verify"}).json()["status"] == "verified"
+    assert client.post("/ops/sources", headers=OPS, json={"url": "https://agent-scam.example.com/x", "title": "x",
                                                          "topic": "fees"}).status_code == 422

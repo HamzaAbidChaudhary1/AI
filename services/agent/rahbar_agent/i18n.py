@@ -37,6 +37,15 @@ EVENTS: dict[str, tuple[str, str]] = {
     "ops_note": ("{note}", "{note}"),
 }
 
+STATUS_NAMES: dict[str, tuple[str, str]] = {
+    "consulting": ("consulting", "مشاورت"), "assessed": ("assessed", "جائزہ مکمل"), "quoted": ("quoted", "قیمت نامہ جاری"),
+    "accepted": ("accepted", "قبول شدہ"), "collecting_documents": ("collecting documents", "دستاویزات جمع ہو رہی ہیں"),
+    "documents_review": ("document review", "دستاویزات کی جانچ"), "pack_ready": ("application pack ready", "درخواست کا پیک تیار"),
+    "awaiting_user_confirmation": ("waiting for your confirmation", "آپ کی تصدیق کا انتظار"), "submitted": ("submitted", "جمع شدہ"),
+    "biometrics_scheduled": ("biometrics scheduled", "(Biometrics) طے"), "in_process": ("in process", "کارروائی جاری"),
+    "decision_approved": ("visa issued", "ویزا جاری"), "decision_refused": ("visa refused", "ویزا مسترد"), "booked": ("booked", "بک شدہ"),
+    "completed": ("completed", "مکمل"), "cancelled": ("cancelled", "منسوخ"), "refunded": ("refunded", "رقم واپس"),
+}
 RATING_UR = {"strong": "مضبوط", "fair": "مناسب", "weak": "کمزور"}
 SERVICE_NAMES = {
     "visit_visa": ("visit visa", "وزٹ ویزا"), "umrah_package": ("Umrah package", "عمرہ پیکج"),
@@ -53,6 +62,9 @@ VISA_TYPES = {"GB": "visitor", "TR": "evisa", "DE": "schengen_c", "AE": "visit",
 
 def event_text(key: str, **kw: Any) -> tuple[str, str]:
     en, ur = EVENTS[key]
+    if key == "status_changed" and kw.get("status") in STATUS_NAMES:
+        s_en, s_ur = STATUS_NAMES[kw["status"]]
+        return en.format(**{**kw, "status": s_en}), ur.format(**{**kw, "status": s_ur})
     if "rating" in kw:
         kw.setdefault("rating_ur", RATING_UR.get(kw["rating"], kw["rating"]))
     if "service" in kw and kw["service"] in SERVICE_NAMES:
