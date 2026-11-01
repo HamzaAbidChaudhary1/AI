@@ -49,3 +49,24 @@ on conflict do nothing;
 insert into public.partners (id, name, kind, licence_number, licence_authority, licence_expiry, contract_terms, active) values
   ('00000000-0000-0000-0000-0000000000a1', 'Sandbox Umrah Operator (demo)', 'umrah_operator', 'DEMO-UMRAH-001', 'Ministry of Religious Affairs (demo)', '2027-12-31', '{"note":"demo partner for development only"}', true)
 on conflict do nothing;
+
+-- PLACEHOLDER FX rates for development. Ops must maintain real rates (source + timestamp shown on quotes).
+insert into public.fx_rates (currency, rate_to_pkr, source) values
+  ('PKR', 1, 'identity'), ('USD', 281.50, 'placeholder'), ('GBP', 365.00, 'placeholder'),
+  ('EUR', 315.00, 'placeholder'), ('SAR', 75.00, 'placeholder'), ('AED', 76.60, 'placeholder'),
+  ('TRY', 8.20, 'placeholder'), ('MYR', 63.50, 'placeholder')
+on conflict do nothing;
+
+-- DEMO Umrah inventory for the sandbox partner (development only; ops enter real partner data).
+insert into public.umrah_inventory (partner_id, kind, name, details, unit_amount_minor, currency, per, valid_from, valid_to) values
+  ('00000000-0000-0000-0000-0000000000a1','visa','Umrah visa + mandatory insurance (via partner)','{}',3200000,'PKR','person','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','flight','Return flight LHE–JED/MED (economy, partner block seats)','{"airline":"Saudia","baggage":"2x23kg + Zamzam 5L"}',22000000,'PKR','person','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','hotel_makkah','Makkah 3★ — economy','{"stars":3,"distance_to_haram_m":900,"room":"quad sharing"}',1100000,'PKR','person_night','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','hotel_makkah','Makkah 4★ — mid','{"stars":4,"distance_to_haram_m":450,"room":"triple sharing"}',2400000,'PKR','person_night','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','hotel_makkah','Makkah 5★ — near Haram','{"stars":5,"distance_to_haram_m":120,"room":"double sharing"}',5200000,'PKR','person_night','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','hotel_madinah','Madinah 3★','{"stars":3,"distance_to_haram_m":700,"room":"quad sharing"}',900000,'PKR','person_night','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','hotel_madinah','Madinah 4★','{"stars":4,"distance_to_haram_m":300,"room":"triple sharing"}',1900000,'PKR','person_night','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','hotel_madinah','Madinah 5★','{"stars":5,"distance_to_haram_m":100,"room":"double sharing"}',4200000,'PKR','person_night','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','transport','Shared AC bus: airport–Makkah–Madinah–airport','{}',1500000,'PKR','person','2026-01-01','2027-12-31'),
+  ('00000000-0000-0000-0000-0000000000a1','ziyarat','Ziyarat tours Makkah + Madinah','{}',500000,'PKR','person','2026-01-01','2027-12-31')
+on conflict do nothing;

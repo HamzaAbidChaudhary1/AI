@@ -12,6 +12,7 @@ import pytest
 ROOT = Path(__file__).parent
 os.environ.setdefault("DATABASE_URL", "postgresql://postgres@localhost:54322/rahbar_test")
 os.environ.setdefault("LLM_MODE", "offline")
+os.environ.setdefault("ALLOW_TEST_DATA", "true")
 os.environ.setdefault("CRAWL_PROVIDER", "fixture")
 os.environ.setdefault("DOCS_ENCRYPTION_KEY", "k1:" + base64.b64encode(b"t" * 32).decode())
 os.environ.setdefault("SUPABASE_JWT_SECRET", "test-jwt-secret-with-at-least-32-characters!!")

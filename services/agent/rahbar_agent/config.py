@@ -26,6 +26,8 @@ class Settings:
     hotel_provider: str = field(default_factory=lambda: _env("HOTEL_PROVIDER", "sandbox"))
     payment_provider: str = field(default_factory=lambda: _env("PAYMENT_PROVIDER", "manual"))
     docs_encryption_key: str = field(default_factory=lambda: _env("DOCS_ENCRYPTION_KEY"))
+    # Allow test-fixture / indicative data to flow through quotes in local dev and tests only.
+    allow_test_data: bool = field(default_factory=lambda: _env("ALLOW_TEST_DATA", "false").lower() == "true")
     fresh_days_fees: int = 7
     fresh_days_general: int = 30
     quote_valid_hours: int = 72
