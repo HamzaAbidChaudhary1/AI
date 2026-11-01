@@ -43,8 +43,26 @@ def get_graph() -> Any:
                                   kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row})
             saver = PostgresSaver(pool)  # type: ignore[arg-type]
             saver.setup()
+            lock_down_checkpoint_tables(pool)
         _graph = build_graph(saver)
     return _graph
+
+
+CHECKPOINT_TABLES = ("checkpoints", "checkpoint_blobs", "checkpoint_writes", "checkpoint_migrations")
+
+
+def lock_down_checkpoint_tables(pool: Any) -> None:
+    """LangGraph creates its tables in `public`; on Supabase those would be readable through the
+    browser-facing REST API. Conversations are private: enable RLS (no policies) and revoke client roles."""
+    with pool.connection() as conn:
+        roles = {r["rolname"] for r in conn.execute(
+            "select rolname from pg_roles where rolname in ('anon','authenticated')").fetchall()}
+        for t in CHECKPOINT_TABLES:
+            if conn.execute("select to_regclass(%s) as r", (f"public.{t}",)).fetchone()["r"] is None:
+                continue
+            conn.execute(f"alter table public.{t} enable row level security")  # noqa: S608
+            if roles:
+                conn.execute(f"revoke all on public.{t} from {', '.join(sorted(roles))}")  # noqa: S608
 
 
 class ChatIn(BaseModel):

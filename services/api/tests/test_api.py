@@ -185,3 +185,17 @@ def test_ops_sources_review(client, db):
     assert client.post(f"/ops/policy/{rec['id']}", headers=OPS, json={"decision": "verify"}).json()["status"] == "verified"
     assert client.post("/ops/sources", headers=OPS, json={"url": "https://agent-scam.example.com/x", "title": "x",
                                                          "topic": "fees"}).status_code == 422
+
+
+def test_checkpoint_tables_locked_down(db, database_url):
+    from psycopg.rows import dict_row
+    from psycopg_pool import ConnectionPool
+
+    from rahbar_api.chat import lock_down_checkpoint_tables
+
+    db.execute("create table if not exists public.checkpoints (id int)")
+    db.execute("grant select on public.checkpoints to anon, authenticated")
+    with ConnectionPool(database_url, kwargs={"row_factory": dict_row, "autocommit": True}, open=True) as p:
+        lock_down_checkpoint_tables(p)
+    row = db.fetch_one("select relrowsecurity, has_table_privilege('anon','public.checkpoints','select') anon_sel from pg_class where relname='checkpoints'")
+    assert row["relrowsecurity"] and not row["anon_sel"]
