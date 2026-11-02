@@ -1,0 +1,67 @@
+# Render Blueprint — STAGING (free plan). One click: Render dashboard → New → Blueprint → this repo.
+# The API runs the job worker in-process (free plan has no background workers); free services sleep
+# after 15 min idle, so the first request after a pause takes ~1 minute.
+# Data is TEST DATA (offline crawl fixtures) until FIRECRAWL_API_KEY / APIFY_TOKEN are set and
+# CRAWL_PROVIDER is switched to "auto".
+services:
+  - type: web
+    name: rahbar-api-hac
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: claude/dazzling-clarke-9qi33w
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL            # paste the value you were given (Supabase pooler, role rahbar_app)
+        sync: false
+      - key: ANTHROPIC_API_KEY       # optional: leave empty to run with bilingual templates (offline)
+        sync: false
+      - key: DOCS_ENCRYPTION_KEY
+        generateValue: true
+      - key: STORAGE_SIGNING_SECRET
+        generateValue: true
+      - key: SUPABASE_URL
+        value: https://bonzaxhsiludoceqymwa.supabase.co
+      - key: LLM_MODE
+        value: auto
+      - key: CRAWL_PROVIDER
+        value: fixture
+      - key: RUN_WORKER_IN_PROCESS
+        value: "true"
+      - key: CHECKPOINTER
+        value: postgres
+      - key: CORS_ORIGINS
+        value: https://rahbar-web-hac.onrender.com
+      - key: CORS_ORIGIN_REGEX
+        value: ^https://rahbar-web-hac(-[a-z0-9]+)?\.onrender\.com$
+      - key: API_PUBLIC_URL
+        value: https://rahbar-api-hac.onrender.com
+      - key: LOCAL_STORAGE_DIR
+        value: /tmp/rahbar-storage    # until SUPABASE_SERVICE_ROLE_KEY is added (then Supabase Storage is used)
+      - key: ALLOW_TEST_DATA          # staging only: lets indicative quotes be accepted end-to-end
+        value: "true"
+      - key: REQUIRE_STAFF_MFA        # staging only: ops 2FA enrolment UI is not built yet
+        value: "false"
+      - key: DEV_AUTH
+        value: "false"
+
+  - type: web
+    name: rahbar-web-hac
+    runtime: node
+    plan: free
+    region: singapore
+    branch: claude/dazzling-clarke-9qi33w
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @rahbar/web build
+    startCommand: cd apps/web && npx next start -p $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: NEXT_PUBLIC_API_URL
+        value: https://rahbar-api-hac.onrender.com
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: https://bonzaxhsiludoceqymwa.supabase.co
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY   # publishable key: safe to expose in the browser
+        value: sb_publishable_TjtIuaaLyMknNOE82JsRNQ_NHVxh4_N

@@ -1586,6 +1586,7 @@ dependencies = [
     { name = "pyjwt", extra = ["crypto"] },
     { name = "python-multipart" },
     { name = "rahbar-agent" },
+    { name = "rahbar-worker" },
     { name = "sentry-sdk" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -1596,6 +1597,7 @@ requires-dist = [
     { name = "pyjwt", extras = ["crypto"], specifier = ">=2.9" },
     { name = "python-multipart", specifier = ">=0.0.9" },
     { name = "rahbar-agent", editable = "services/agent" },
+    { name = "rahbar-worker", editable = "services/worker" },
     { name = "sentry-sdk", specifier = ">=2.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]

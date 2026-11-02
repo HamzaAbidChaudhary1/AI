@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from langgraph.types import Command
 from pydantic import BaseModel, Field
-from rahbar_agent.db import fetch_one, tx
+from rahbar_agent.db import database_url, fetch_one, tx
 from rahbar_agent.graph.graph import build_graph, thread_config, turn_input
 
 from .auth import User, optional_user
@@ -39,7 +39,7 @@ def get_graph() -> Any:
             from psycopg.rows import dict_row
             from psycopg_pool import ConnectionPool
 
-            pool = ConnectionPool(os.environ["DATABASE_URL"], max_size=10, open=True,
+            pool = ConnectionPool(database_url(), max_size=10, open=True,
                                   kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row})
             saver = PostgresSaver(pool)  # type: ignore[arg-type]
             saver.setup()

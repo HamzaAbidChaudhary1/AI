@@ -27,13 +27,29 @@ if os.environ.get("SENTRY_DSN"):
 app = FastAPI(title="Rahbar API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")],
+    allow_origins=[o.strip() for o in os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()],
+    allow_origin_regex=os.environ.get("CORS_ORIGIN_REGEX") or None,
     allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
 )
 app.include_router(chat.router)
 app.include_router(routes_customer.router)
 app.include_router(routes_ops.router)
 llm.set_usage_hook(chat.record_usage)
+if os.environ.get("RUN_WORKER_IN_PROCESS") == "true":
+
+    @app.on_event("startup")
+    def _start_worker() -> None:
+        from rahbar_worker.main import start_in_background
+
+        app.state.worker_stop = start_in_background()
+
+    @app.on_event("shutdown")
+    def _stop_worker() -> None:
+        stop = getattr(app.state, "worker_stop", None)
+        if stop:
+            stop.set()
+
+
 if dev_auth.enabled():
     logging.getLogger(__name__).warning("DEV_AUTH is enabled — local development only")
     app.include_router(dev_auth.router)

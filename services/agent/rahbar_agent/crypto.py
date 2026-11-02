@@ -7,6 +7,7 @@ DOCS_ENCRYPTION_KEY may hold several keys "k2:<b64>,k1:<b64>"; the first one enc
 from __future__ import annotations
 
 import base64
+import hashlib
 import os
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -23,9 +24,15 @@ def _keys(spec: str | None = None) -> list[tuple[str, bytes]]:
         kid, _, b64 = part.strip().partition(":")
         if not b64:
             kid, b64 = "k1", kid
-        key = base64.b64decode(b64)
+        try:
+            key = base64.b64decode(b64, validate=True)
+        except ValueError:
+            key = b""
         if len(key) != 32:
-            raise RuntimeError("encryption keys must be 32 bytes (base64)")
+            # not a raw 32-byte base64 key: derive one (input must itself be a long random secret)
+            if len(b64) < 32:
+                raise RuntimeError("DOCS_ENCRYPTION_KEY is too short")
+            key = hashlib.sha256(b64.encode()).digest()
         out.append((kid, key))
     return out
 

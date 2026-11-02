@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import signal
+import threading
 import time
 from collections.abc import Callable
 from typing import Any
@@ -115,25 +116,36 @@ def run_once(types: list[str] | None = None) -> str | None:
     return str(job["id"])
 
 
-def main() -> None:
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
-    stop = False
-
-    def _stop(*_a: Any) -> None:
-        nonlocal stop
-        stop = True
-
-    signal.signal(signal.SIGTERM, _stop)
-    signal.signal(signal.SIGINT, _stop)
+def run_forever(stop: threading.Event) -> None:
     log.info("worker started")
     last_sched = 0.0
-    while not stop:
-        if time.monotonic() - last_sched > 30:
-            schedule_due()
-            last_sched = time.monotonic()
-        if run_once() is None:
-            time.sleep(float(os.environ.get("WORKER_IDLE_SLEEP", "2")))
+    idle = float(os.environ.get("WORKER_IDLE_SLEEP", "2"))
+    while not stop.is_set():
+        try:
+            if time.monotonic() - last_sched > 30:
+                schedule_due()
+                last_sched = time.monotonic()
+            if run_once() is None:
+                stop.wait(idle)
+        except Exception:  # database blip: back off, keep the loop alive
+            log.exception("worker loop error")
+            stop.wait(10)
     log.info("worker stopped")
+
+
+def start_in_background() -> threading.Event:
+    """Run the worker inside another process (e.g. the API on a single free instance)."""
+    stop = threading.Event()
+    threading.Thread(target=run_forever, args=(stop,), daemon=True, name="rahbar-worker").start()
+    return stop
+
+
+def main() -> None:
+    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
+    stop = threading.Event()
+    signal.signal(signal.SIGTERM, lambda *_a: stop.set())
+    signal.signal(signal.SIGINT, lambda *_a: stop.set())
+    run_forever(stop)
 
 
 if __name__ == "__main__":

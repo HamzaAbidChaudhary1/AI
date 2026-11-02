@@ -14,13 +14,36 @@ from psycopg_pool import ConnectionPool
 from .config import get_settings
 
 _pool: ConnectionPool | None = None
+_resolved_url: str | None = None
+
+
+def database_url() -> str:
+    """DATABASE_URL may hold several candidates separated by '|' (e.g. the two Supabase pooler hosts);
+    the first one that accepts a connection is used for the life of the process."""
+    global _resolved_url
+    if _resolved_url is None:
+        candidates = [c.strip() for c in get_settings().database_url.split("|") if c.strip()]
+        if len(candidates) == 1:
+            _resolved_url = candidates[0]
+        else:
+            last: Exception | None = None
+            for c in candidates:
+                try:
+                    with psycopg.connect(c, connect_timeout=8):
+                        _resolved_url = c
+                        break
+                except psycopg.OperationalError as e:
+                    last = e
+            if _resolved_url is None:
+                raise RuntimeError("no DATABASE_URL candidate accepted a connection") from last
+    return _resolved_url
 
 
 def pool() -> ConnectionPool:
     global _pool
     if _pool is None:
         _pool = ConnectionPool(
-            get_settings().database_url,
+            database_url(),
             min_size=1,
             max_size=10,
             kwargs={"row_factory": dict_row, "autocommit": False},

@@ -33,3 +33,24 @@ def test_encrypt_roundtrip_and_rotation():
     assert crypto.decrypt(blob, f"{k2},{k1}") == "AB1234567"
     assert crypto.encrypt("x", f"{k2},{k1}").startswith(b"k2:")
     assert crypto.mask("AB1234567") == "*****4567"
+
+
+def test_derived_key_from_generated_secret():
+    secret = "Zm9vYmFyYmF6cXV4c2VjcmV0dmFsdWVnZW5lcmF0ZWRieXJlbmRlcg=="  # not 32 raw bytes
+    assert crypto.decrypt(crypto.encrypt("CNIC123", secret), secret) == "CNIC123"
+    with pytest.raises(RuntimeError):
+        crypto.encrypt("x", "short")
+
+
+def test_database_url_candidates(monkeypatch):
+    from rahbar_agent import config, db
+
+    good = "postgresql://postgres@localhost:54322/postgres"
+    monkeypatch.setenv("DATABASE_URL", f"postgresql://postgres@localhost:1/none|{good}")
+    config.get_settings.cache_clear()
+    monkeypatch.setattr(db, "_resolved_url", None)
+    try:
+        assert db.database_url() == good
+    finally:
+        config.get_settings.cache_clear()
+        monkeypatch.setattr(db, "_resolved_url", None)

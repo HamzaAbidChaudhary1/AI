@@ -190,7 +190,6 @@ def test_ops_sources_review(client, db):
 def test_checkpoint_tables_locked_down(db, database_url):
     from psycopg.rows import dict_row
     from psycopg_pool import ConnectionPool
-
     from rahbar_api.chat import lock_down_checkpoint_tables
 
     db.execute("create table if not exists public.checkpoints (id int)")
